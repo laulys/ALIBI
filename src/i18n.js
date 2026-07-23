@@ -77,7 +77,7 @@ export const STRINGS = {
     finePrint:
       'The Bureau approves all excuses. That is the business model.<br/>Void where prohibited. Valid everywhere else, emotionally.',
     deskFoot: 'For entertainment purposes. Probably.',
-    deskFootSub: 'No data stored · Weather by Open-Meteo · Lies by you',
+    deskFootSub: 'No data stored · Weather by Open-Meteo · Traffic by TomTom · Lies by you',
     langToggle: 'Español',
   },
   es: {
@@ -155,7 +155,7 @@ export const STRINGS = {
     finePrint:
       'La Oficina aprueba todas las excusas. Ese es el modelo de negocio.<br/>Nulo donde esté prohibido. Válido en el resto, emocionalmente.',
     deskFoot: 'Con fines de entretenimiento. Probablemente.',
-    deskFootSub: 'No se guardan datos · Clima de Open-Meteo · Mentiras suyas',
+    deskFootSub: 'No se guardan datos · Clima de Open-Meteo · Tráfico de TomTom · Mentiras suyas',
     langToggle: 'English',
   },
 };
