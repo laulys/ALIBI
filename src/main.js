@@ -70,9 +70,6 @@ function typeTagline() {
 function localizeDynamic() {
   // strings owned by JS state rather than static markup
   $('chaos-hint').textContent = STRINGS[lang].chaosHints[state.chaos];
-  $('received-date').textContent = new Date()
-    .toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase();
   $('lang-toggle').textContent = t('langToggle');
   if (state.weather) renderReadout();
   if (state.result && !$('certificate').hidden) {

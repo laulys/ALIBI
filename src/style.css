@@ -146,24 +146,6 @@ body {
   pointer-events: none;
 }
 
-.received {
-  position: absolute;
-  top: 46px;
-  right: clamp(48px, 16vw, 170px);
-  border: 2px solid var(--pen);
-  border-radius: 3px;
-  color: var(--pen);
-  font-family: var(--font-type);
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 3px 8px;
-  opacity: 0.55;
-  transform: rotate(3deg);
-  pointer-events: none;
-}
-
 .coffee-ring {
   position: absolute;
   bottom: 130px;
