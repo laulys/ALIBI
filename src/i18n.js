@@ -4,6 +4,7 @@
 export const STRINGS = {
   en: {
     agency: 'Bureau of Plausible Deniability',
+    wordmark: 'Excuse<br/>Generator<span class="tm">™</span>',
     formTitle: 'Application for Emergency Excuse',
     tagline: '“Stop lying. Start filing.” — Every excuse notarized with real weather, traffic and location data.',
     confidential: 'Confidential',
@@ -82,6 +83,7 @@ export const STRINGS = {
   },
   es: {
     agency: 'Oficina de la Negación Plausible',
+    wordmark: 'Generador<br/>de Excusas<span class="tm">™</span>',
     formTitle: 'Solicitud de Excusa de Emergencia',
     tagline: '“Deje de mentir. Empiece a tramitar.” — Cada excusa, notarizada con datos reales de clima, tráfico y ubicación.',
     confidential: 'Confidencial',

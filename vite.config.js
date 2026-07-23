@@ -209,6 +209,7 @@ export default defineConfig(({ mode }) => {
   const apiKey = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || '';
   const tomtomKey = process.env.TOMTOM_API_KEY || env.TOMTOM_API_KEY || '';
   return {
+    server: { port: Number(process.env.PORT) || 5173 },
     plugins: [devExcuseApi(apiKey, tomtomKey)],
   };
 });

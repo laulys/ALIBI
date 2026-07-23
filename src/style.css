@@ -242,11 +242,12 @@ body {
 
 .wordmark {
   font-family: var(--font-stamp);
-  font-size: clamp(3.4rem, 16vw, 5.4rem);
-  line-height: 0.95;
+  font-size: clamp(2.3rem, 10vw, 3.7rem);
+  line-height: 0.98;
   letter-spacing: 0.05em;
   font-weight: 400;
   color: var(--ink);
+  text-wrap: balance;
   /* double-strike typewriter misprint */
   text-shadow: 3px 2px 0 oklch(0.51 0.19 20 / 0.25);
 }
