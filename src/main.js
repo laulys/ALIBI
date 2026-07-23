@@ -7,6 +7,7 @@ const $ = (id) => document.getElementById(id);
 const state = {
   place: null, // { name, country, lat, lon }
   weather: null, // { temp, precip, wind, code, unit, localTime }
+  traffic: null, // { level, delayFactor, currentSpeed, freeFlowSpeed } or null
   audience: null,
   chaos: 'spicy',
   result: null, // { excuse, credibility, risk_note }
@@ -107,7 +108,9 @@ async function setPlace(place) {
   cityResults.hidden = true;
   state.place = place;
   state.weather = null;
+  state.traffic = null;
   renderReadout(true);
+  fetchTrafficInfo(place);
   try {
     state.weather = await fetchWeather(place.lat, place.lon, useFahrenheit);
     renderReadout();
@@ -118,6 +121,26 @@ async function setPlace(place) {
     showLocError(t('locFail'));
   }
   updateGenerateGate();
+}
+
+async function fetchTrafficInfo(place) {
+  try {
+    const res = await fetch(`/api/traffic?lat=${place.lat}&lon=${place.lon}`);
+    const data = await res.json();
+    if (data.available && state.place === place) {
+      state.traffic = data;
+      if (state.weather) renderReadout();
+    }
+  } catch {
+    // traffic is optional evidence — silently skip
+  }
+}
+
+function trafficLabel() {
+  const tr = state.traffic;
+  if (!tr) return '';
+  const label = STRINGS[lang].trafficLevels[tr.level] || tr.level;
+  return tr.level === 'slow' || tr.level === 'jam' ? `${label} (+${tr.delayFactor}%)` : label;
 }
 
 function renderReadout(loading = false) {
@@ -136,6 +159,7 @@ function renderReadout(loading = false) {
         [t('kConditions'), describeWeather(w.code, lang)],
         [t('kWind'), `${w.wind} km/h`],
         [t('kPrecip'), `${w.precip} mm`],
+        ...(state.traffic ? [[t('kTraffic'), trafficLabel()]] : []),
       ];
   rows.innerHTML = entries
     .map(
@@ -305,6 +329,7 @@ async function generate() {
         chaos: state.chaos,
         lang,
         previous: state.history.slice(-5),
+        traffic: state.traffic,
         weather: { ...state.weather, description: describeWeather(state.weather.code, lang) },
       }),
     });
@@ -345,7 +370,8 @@ function conditionsLine() {
   const w = state.weather;
   const p = state.place;
   const time = w.localTime ? w.localTime.replace('T', ' · ') : '';
-  return `${w.temp}${w.unit} · ${describeWeather(w.code, lang)} · ${t('wind')} ${w.wind} km/h · ${p.name}${time ? ' · ' + time : ''}`;
+  const traffic = state.traffic ? ` · ${t('kTraffic').toLowerCase()}: ${trafficLabel()}` : '';
+  return `${w.temp}${w.unit} · ${describeWeather(w.code, lang)} · ${t('wind')} ${w.wind} km/h${traffic} · ${p.name}${time ? ' · ' + time : ''}`;
 }
 
 function buildGaugeTicks() {

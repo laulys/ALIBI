@@ -50,8 +50,11 @@ HARD CONSISTENCY RULE — the verified conditions are ground truth:
   conditions; wind chaos requires meaningful wind speed).
 - If conditions are clear and dry, the excuse must be built on clear-and-dry problems
   (heat, sun, glare, pollen, pressure, a suspiciously perfect day…).
+- Traffic follows the same rule: only use jams, closures, or being stuck in traffic as an
+  excuse if the traffic data shows slow, jam, or closed. If traffic is free-flowing or no
+  traffic data is provided, do not claim traffic problems.
 - At higher chaos levels, escalate the IMPLICATIONS of the real conditions, never the
-  weather facts themselves.
+  weather or traffic facts themselves.
 
 Rules for the other fields:
 - "credibility": an integer 0-100 rating how believable the excuse is, consistent with the
@@ -72,7 +75,7 @@ function bad(msg) {
 
 export function validatePayload(body) {
   if (!body || typeof body !== 'object') throw bad('Missing request body');
-  const { city, audience, chaos, weather, lang, previous } = body;
+  const { city, audience, chaos, weather, lang, previous, traffic } = body;
   if (typeof city !== 'string' || !city.trim() || city.length > 80) throw bad('Invalid city');
   if (!Object.hasOwn(AUDIENCES, audience)) throw bad('Invalid audience');
   if (!Object.hasOwn(CHAOS, chaos)) throw bad('Invalid chaos level');
@@ -80,6 +83,14 @@ export function validatePayload(body) {
   const { temp, precip, wind, description, unit, localTime } = weather;
   if (![temp, precip, wind].every((n) => Number.isFinite(n))) throw bad('Invalid weather data');
   if (typeof description !== 'string' || description.length > 60) throw bad('Invalid conditions');
+  let trafficInfo = null;
+  if (traffic && typeof traffic === 'object' && ['free', 'slow', 'jam', 'closed'].includes(traffic.level)) {
+    const df = Number(traffic.delayFactor);
+    trafficInfo = {
+      level: traffic.level,
+      delayFactor: Number.isFinite(df) ? Math.max(0, Math.min(95, Math.round(df))) : 0,
+    };
+  }
   return {
     city: city.trim(),
     audience,
@@ -89,6 +100,7 @@ export function validatePayload(body) {
       .filter((s) => typeof s === 'string' && s.trim())
       .slice(-5)
       .map((s) => s.slice(0, 600)),
+    traffic: trafficInfo,
     weather: {
       temp,
       precip,
@@ -100,11 +112,21 @@ export function validatePayload(body) {
   };
 }
 
-function buildUserPrompt({ city, audience, chaos, lang, weather, previous }) {
+const TRAFFIC_DESC = {
+  free: () => 'free-flowing, no congestion',
+  slow: (df) => `slow traffic, about ${df}% below normal speed`,
+  jam: (df) => `heavy congestion / traffic jam, about ${df}% below normal speed`,
+  closed: () => 'a road closure on a nearby road',
+};
+
+function buildUserPrompt({ city, audience, chaos, lang, weather, previous, traffic }) {
   const avoid = previous.length
     ? `\nThe user has already seen the following excuse(s) this session and asked for a better
 one. Produce a CLEARLY different scenario — do not reuse the situation, objects, or names
 of ANY of them:\n${previous.map((p) => `«${p}»`).join('\n')}\n`
+    : '';
+  const trafficLine = traffic
+    ? `\n- Traffic near their location (real data from TomTom): ${TRAFFIC_DESC[traffic.level](traffic.delayFactor)}`
     : '';
   return `Verified current conditions (real data from Open-Meteo):
 - City: ${city}
@@ -112,7 +134,7 @@ of ANY of them:\n${previous.map((p) => `«${p}»`).join('\n')}\n`
 - Conditions: ${weather.description}
 - Precipitation: ${weather.precip} mm
 - Wind: ${weather.wind} km/h
-- Local time: ${weather.localTime || 'unknown'}
+- Local time: ${weather.localTime || 'unknown'}${trafficLine}
 
 The excuse is for: ${AUDIENCES[audience]}.
 

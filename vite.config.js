@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import { generateExcuse, validatePayload } from './api/_lib/core.js';
+import { fetchTraffic, validateCoords } from './api/_lib/traffic.js';
 
 // Dev-only stand-in for the Vercel serverless function so `npm run dev`
 // exercises the real flow. With ANTHROPIC_API_KEY set it calls the same
@@ -135,10 +136,39 @@ function buildMock({ chaos, lang, weather, city }) {
   return { ...v, credibility: Math.max(5, Math.min(95, v.credibility + jitter)) };
 }
 
-function devExcuseApi(apiKey) {
+function devExcuseApi(apiKey, tomtomKey) {
   return {
     name: 'alibi-dev-excuse-api',
     configureServer(server) {
+      server.middlewares.use('/api/traffic', async (req, res) => {
+        res.setHeader('content-type', 'application/json');
+        const url = new URL(req.url, 'http://localhost');
+        const coords = validateCoords(url.searchParams.get('lat'), url.searchParams.get('lon'));
+        if (!coords) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: 'Invalid coordinates' }));
+          return;
+        }
+        if (tomtomKey) {
+          try {
+            res.end(JSON.stringify(await fetchTraffic(coords.lat, coords.lon, tomtomKey)));
+          } catch (err) {
+            console.error('[alibi] traffic lookup failed:', err.message);
+            res.end(JSON.stringify({ available: false }));
+          }
+          return;
+        }
+        // No TomTom key: serve a plausible mock so the UI flow is testable.
+        console.warn('[alibi] TOMTOM_API_KEY not set — serving mock traffic');
+        const roll = Math.random();
+        const mock =
+          roll < 0.45
+            ? { level: 'free', delayFactor: 0, currentSpeed: 48, freeFlowSpeed: 50 }
+            : roll < 0.8
+              ? { level: 'slow', delayFactor: 31, currentSpeed: 33, freeFlowSpeed: 48 }
+              : { level: 'jam', delayFactor: 62, currentSpeed: 18, freeFlowSpeed: 48 };
+        res.end(JSON.stringify({ available: true, ...mock }));
+      });
       server.middlewares.use('/api/excuse', (req, res) => {
         if (req.method !== 'POST') {
           res.statusCode = 405;
@@ -177,7 +207,8 @@ export default defineConfig(({ mode }) => {
   // reach client code, and this one is not prefixed.
   const env = loadEnv(mode, process.cwd(), '');
   const apiKey = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || '';
+  const tomtomKey = process.env.TOMTOM_API_KEY || env.TOMTOM_API_KEY || '';
   return {
-    plugins: [devExcuseApi(apiKey)],
+    plugins: [devExcuseApi(apiKey, tomtomKey)],
   };
 });
