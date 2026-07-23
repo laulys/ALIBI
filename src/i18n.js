@@ -5,7 +5,7 @@ export const STRINGS = {
   en: {
     agency: 'Bureau of Plausible Deniability',
     formTitle: 'Application for Emergency Excuse',
-    tagline: '“Plausible deniability, as a service.” — The weather never lies. That’s what you’re for.',
+    tagline: '“Stop lying. Start filing.” — Every excuse notarized against real weather data.',
     confidential: 'Confidential',
     received: 'Received',
     caseFile: 'Case file: your whereabouts',
@@ -83,7 +83,7 @@ export const STRINGS = {
   es: {
     agency: 'Oficina de la Negación Plausible',
     formTitle: 'Solicitud de Excusa de Emergencia',
-    tagline: '“Negación plausible, como servicio.” — El clima nunca miente. Para eso está usted.',
+    tagline: '“Deje de mentir. Empiece a tramitar.” — Cada excusa, notarizada con datos meteorológicos reales.',
     confidential: 'Confidencial',
     received: 'Recibido',
     caseFile: 'Expediente: su paradero',
